@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kahvehane Piştisi</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Rubik:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<!-- BODY:START -->
+<div id="app">
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">♣</span> Pişti</div>
+    <div id="scoreboard" class="scoreboard" aria-live="polite"></div>
+    <div class="top-actions">
+      <button id="btnLog" class="ghost" type="button" title="Hamle geçmişi">Hamleler</button>
+      <button id="btnRules" class="ghost" type="button" title="Oyun kuralları">Kurallar</button>
+      <button id="btnMenu" class="ghost" type="button" title="Ana menü">Menü</button>
+    </div>
+  </header>
+
+  <main id="table" class="table seats-2">
+    <section class="seat" data-pos="top" id="seat-top"></section>
+    <section class="seat" data-pos="left" id="seat-left"></section>
+    <section class="seat" data-pos="right" id="seat-right"></section>
+
+    <section class="center">
+      <div class="deck-wrap">
+        <div id="deck" class="deck"></div>
+        <div id="deckCount" class="caption"></div>
+      </div>
+      <div class="pile-wrap">
+        <div id="pile" class="pile"></div>
+        <div id="pileInfo" class="caption"></div>
+      </div>
+      <div id="ticker" class="ticker" aria-live="polite"></div>
+    </section>
+
+    <section class="seat seat-me" data-pos="bottom" id="seat-bottom"></section>
+  </main>
+
+  <aside id="logPanel" class="log-panel" hidden>
+    <div class="log-head">
+      <h2>Hamleler</h2>
+      <button id="btnLogClose" class="ghost" type="button">Kapat</button>
+    </div>
+    <ol id="log" class="log"></ol>
+  </aside>
+</div>
+
+<div id="fly" class="fly-layer" aria-hidden="true"></div>
+<div id="banner" class="banner" hidden></div>
+
+<!-- Kurulum ekranı -->
+<div id="setup" class="overlay">
+  <form id="setupForm" class="panel setup">
+    <div class="setup-hero">
+      <div class="hero-cards" aria-hidden="true">
+        <span class="mini-card red">J<small>♥</small></span>
+        <span class="mini-card">J<small>♠</small></span>
+      </div>
+      <h1>Pişti</h1>
+      <p class="lede">Kahvehane masası kuruldu. Eşini seç, rakiplerini belirle, Vale'ni sakla.</p>
+    </div>
+
+    <fieldset>
+      <legend>Oyuncu sayısı</legend>
+      <div class="segmented" role="radiogroup">
+        <label><input type="radio" name="players" id="players2" value="2" checked><span>2 kişi</span></label>
+        <label><input type="radio" name="players" id="players4" value="4"><span>4 kişi</span></label>
+      </div>
+    </fieldset>
+
+    <fieldset id="modeField" hidden>
+      <legend>Oyun türü</legend>
+      <div class="segmented" role="radiogroup">
+        <label><input type="radio" name="mode" id="modeTeams" value="teams" checked><span>Eşli (2'ye 2)</span></label>
+        <label><input type="radio" name="mode" id="modeSolo" value="solo"><span>Herkes kendine</span></label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Masa</legend>
+      <div id="seatRows" class="seat-rows"></div>
+      <p class="hint">Birden fazla <b>İnsan</b> seçersen aynı cihazda sırayla oynarsınız; sıra gelene kadar kartlar gizli kalır.</p>
+    </fieldset>
+
+    <div class="setup-grid">
+      <fieldset>
+        <legend>Bitiş puanı</legend>
+        <div class="segmented" role="radiogroup">
+          <label><input type="radio" name="target" id="target51" value="51"><span>51</span></label>
+          <label><input type="radio" name="target" id="target101" value="101" checked><span>101</span></label>
+          <label><input type="radio" name="target" id="target151" value="151"><span>151</span></label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Yapay zekâ hızı</legend>
+        <div class="segmented" role="radiogroup">
+          <label><input type="radio" name="speed" id="speedSlow" value="slow"><span>Yavaş</span></label>
+          <label><input type="radio" name="speed" id="speedNormal" value="normal" checked><span>Normal</span></label>
+          <label><input type="radio" name="speed" id="speedFast" value="fast"><span>Hızlı</span></label>
+        </div>
+      </fieldset>
+    </div>
+
+    <label class="check"><input type="checkbox" id="hints" checked> Yerdekini alabilecek kartlarımı vurgula</label>
+
+    <div class="setup-actions">
+      <button id="btnResume" type="button" class="secondary" hidden>Kaldığın yerden devam et</button>
+      <button id="btnStart" type="submit" class="primary">Masaya otur</button>
+    </div>
+  </form>
+</div>
+
+<!-- El sonu -->
+<div id="handEnd" class="overlay" hidden>
+  <div class="panel result">
+    <h2 id="handEndTitle">El bitti</h2>
+    <div class="table-scroll"><table id="handEndTable" class="score-table"></table></div>
+    <p id="handEndNote" class="note"></p>
+    <div class="setup-actions">
+      <button id="btnToMenu" type="button" class="secondary">Ana menü</button>
+      <button id="btnNextHand" type="button" class="primary">Sonraki el</button>
+    </div>
+  </div>
+</div>
+
+<!-- Sıra perdesi (aynı cihazda birden çok insan) -->
+<div id="curtain" class="overlay curtain" hidden>
+  <div class="panel curtain-panel">
+    <p class="eyebrow">Sıra değişti</p>
+    <h2 id="curtainName">—</h2>
+    <p>Cihazı ona ver. Diğerleri kartlara bakmasın.</p>
+    <button id="btnReveal" type="button" class="primary">Kartlarımı göster</button>
+  </div>
+</div>
+
+<!-- Kurallar -->
+<div id="rules" class="overlay" hidden>
+  <div class="panel rules-panel">
+    <div class="log-head">
+      <h2>Pişti kuralları</h2>
+      <button id="btnRulesClose" class="ghost" type="button">Kapat</button>
+    </div>
+    <div class="rules-body">
+      <p>52'lik deste kullanılır. Yere 4 kart açılır: üçü kapalı, en üstteki açık. Her oyuncuya 4 kart dağıtılır; eller bitince deste bitene kadar yeniden 4'er kart verilir.</p>
+      <h3>Kart almak</h3>
+      <ul>
+        <li>Attığın kart yerdeki en üst kartla <b>aynı sayıdaysa</b> yerdeki bütün kartları alırsın.</li>
+        <li><b>Vale (J)</b> her şeyi alır. Yer boşsa Vale de sadece yere atılır.</li>
+        <li>Yerde <b>tek kart</b> varken aynı sayıyla alırsan bu bir <b>pişti</b>dir: <b>10 puan</b>. Tek Vale'yi Vale ile alırsan <b>20 puan</b>. Tek kartı Vale ile almak pişti sayılmaz.</li>
+        <li>Destenin sonunda yerde kalan kartlar, en son kart alan oyuncuya gider.</li>
+      </ul>
+      <h3>Puanlar</h3>
+      <table class="score-table compact">
+        <tbody>
+          <tr><td>Her As</td><td>1</td></tr>
+          <tr><td>Her Vale</td><td>1</td></tr>
+          <tr><td>Sinek 2 (♣2)</td><td>2</td></tr>
+          <tr><td>Karo 10 (♦10)</td><td>3</td></tr>
+          <tr><td>En çok kart alan (eşitlikte kimse)</td><td>3</td></tr>
+          <tr><td>Pişti</td><td>10</td></tr>
+          <tr><td>Vale ile Vale piştisi</td><td>20</td></tr>
+        </tbody>
+      </table>
+      <p>Seçilen bitiş puanına (51, 101 veya 151) ilk ulaşan taraf kazanır. Eşli oyunda karşılıklı oturanlar takımdır, puanları birlikte sayılır.</p>
+      <h3>Yapay zekâ</h3>
+      <p><b>Kolay</b> sık hata yapar. <b>Orta</b> çıkan kartları sayar ve rakibe pişti verme riskini hesaplar. <b>Zor</b> görmediği kartların yüzlerce olası dağılımını oynatıp en kârlı hamleyi seçer. Hiçbiri senin kartlarına bakmaz.</p>
+    </div>
+  </div>
+</div>
+<!-- BODY:END -->
+<script src="js/engine.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/ui.js"></script>
+</body>
+</html>
